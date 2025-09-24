@@ -1,17 +1,40 @@
-
 library(tidyverse)
 library(readxl)
+library(janitor)
+library(furrr)
 
-PATH <- "tabulados_TODFBCF/"
-XLSX_FILE <- "SubsectorConstantes.txt"
+CORES <- future::availableCores()
+if (.Platform$OS.type != "windows") {
+  plan(multicore, workers = CORES)
+} else {
+  plan(multisession, workers = CORES)
+}
 
-INPUTS <- readLines(XLSX_FILE) %>%
-  str_c(PATH, .)
-IN <- INPUTS[[1]]
+DIR <- "tabulados_TODFBCF/"
+NAMES <- "SubsectorConstantes.txt"
 
-SKIP_ABOVE <- 6
-SKIP_BELOW <- 5
-x <- read_xlsx(IN, col_names = FALSE) |>
-  slice_tail(n = SKIP_ABOVE) |>
-  slice_head(n = SKIP_BELOW)
+INPUTS <- readLines(NAMES) %>%
+  str_c(DIR, .)
 
+read_origen_destino <- function(path) {
+  
+  SKIP_ABOVE <- 6
+  SKIP_BELOW <- 5
+  x <- read_xlsx(path, col_names = FALSE) |>
+    slice_tail(n = -SKIP_ABOVE) |>
+    slice_head(n = -SKIP_BELOW)
+  
+  sectors <- x[[1]] |>
+    janitor::make_clean_names()
+    
+  x <- x[,-(1:2)] |>
+    mutate(across(everything(), ~as.double(.x)))
+  
+  x <- x |>
+    set_names(sectors)
+  
+  x |> as.matrix()
+}
+
+ALL <- future_map(INPUTS, read_origen_destino)
+write_rds(ALL, "all_destinos.Rds")
