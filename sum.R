@@ -12,36 +12,47 @@ sectors <- colnames(S_ALL)
 ori_dest <- S_ALL |>
   as_tibble()
 
-names(ori_dest)  
+ori_dest[ori_dest < 0] <- 0
 
-sectors[ori_dest$x325_industria_quimica > 0]
-sectors
-iQ_sum <- sum(ori_dest$x325_industria_quimica)
+Sums <- ori_dest |>
+  colSums()
 
-iQ_percents <- round(ori_dest$x325_industria_quimica / iQ_sum * 100, 2)
+relative_buys <- function(col) {
+  total <- sum(col)
+  if(total > 0) {
+    col / total
+  } else {
+    return(rep(0, length(col)))
+  }
+}
 
-iQ_percents <- set_names(iQ_percents, sectors)
-ori_dest$x325_industria_quimica
 
-iQsorted <- tibble(sectors = sectors,
-       iQ = iQ_percents) |>
-  filter(iQ > 0) |>
-  arrange(desc(iQ))
+CLU_ori_dest <- ori_dest |>
+  mutate(across(everything(), relative_buys)) |>
+  as.matrix() |>
+  t()
 
-iQsorted |>
-  write_tsv("industria_quimica_mexico.tsv")
+rowSums(CLU_ori_dest)
 
-iQsorted <- read_tsv("industria_quimica_mexico.tsv")
+myinst <- function(pack) {
+  renv::install(pack, prompt = FALSE)
+}
 
-p <- ggplot(iQsorted, aes(x = reorder(sectors,-iQ)))+
- geom_col(aes(y = iQ))
+library(Rtsne)
+set.seed(424242)
+tsne <- Rtsne(CLU_ori_dest,
+              dims = 2, perplexity = 1, verbose = TRUE,
+              partial_pca = TRUE, num_threads = 12
+)
 
-p
+tsne_coords <- tsne$Y |>
+  as_tibble()
 
-p <- p +
-  ggthemes::theme_fivethirtyeight() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(subtitle = "¿A qué sectores le compra\nla Industria Química?\nPorcentajes en México",
-       x = "Sector", y = "Porcentaje")
+ggplot(tsne_coords) +
+  geom_point(aes(x = V1, y = V2))
 
-ggsave("iQ.png", units = "cm", width = 18, height = 24)
+library(philentropy)
+# myinst("dbscan")
+
+KL <- KL(CLU_ori_dest, unit = 'log') |> as.dist()
+# HDB_wdl <- hdbscan(as.dist(wdl), minPts = MIN_PTS)
