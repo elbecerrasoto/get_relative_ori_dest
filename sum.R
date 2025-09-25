@@ -1,5 +1,7 @@
 
 library(tidyverse)
+MIN_CLU <- 2
+
 
 ALL <- read_rds("all_destinos.Rds")
 S_ALL <- reduce(ALL, `+`)
@@ -52,7 +54,50 @@ ggplot(tsne_coords) +
   geom_point(aes(x = V1, y = V2))
 
 library(philentropy)
-# myinst("dbscan")
+library(dbscan)
 
-KL <- KL(CLU_ori_dest, unit = 'log') |> as.dist()
-# HDB_wdl <- hdbscan(as.dist(wdl), minPts = MIN_PTS)
+# KL <- KL(CLU_ori_dest, unit = 'log') |> as.dist()
+# KL <- dist(CLU_ori_dest)
+KL <- JSD(CLU_ori_dest, unit = "log2") |> as.dist()
+
+HDB_wdl <- hdbscan(KL, minPts = MIN_CLU)
+
+tsne_coords$cluster <- factor(HDB_wdl$cluster) 
+
+scian <- names(ori_dest) |>
+  str_remove("_.*")
+tsne_coords$scian <- scian
+
+library(ggrepel)
+library(ggthemes)
+
+p <- ggplot(tsne_coords, aes(x = V1, y = V2, color = cluster)) +
+  geom_text_repel(
+    aes(
+      label = scian
+    )) +
+  geom_point()+
+  theme_fivethirtyeight(base_size = 18)
+
+
+p_filtered <- ggplot(tsne_coords |> filter(cluster != 0)
+                     , aes(x = V1, y = V2, color = cluster)) +
+  geom_text_repel(
+    aes(
+      label = scian
+    )) +
+  geom_point()+
+  theme_fivethirtyeight(base_size = 18)
+
+
+ggsave("sectores_hermanados_inversion.png", p_filtered,
+       units = "cm", width = 24, height = 16)
+ 
+
+tsne_coords$sector <- names(ori_dest) 
+tsne_coords <- tsne_coords |>
+  arrange(cluster)
+
+tsne_coords |>
+  write_tsv("similar_structures.tsv")
+ggsave("similar_structure.svg", p, units = "cm", width = 22, height = 16)
