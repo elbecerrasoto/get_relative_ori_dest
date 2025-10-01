@@ -1,22 +1,37 @@
 library(tidyverse)
 
 ALL <- read_rds("all_destinos.Rds")
-map_nat_bir <- read_tsv("ori_bir.tsv.tsv")
+map_ori_bir <- read_tsv("ori_bir.tsv", col_types = "ffff")
 
-secs_nat <- map_nat_bir$`SECTOR MIP NACIONAL`
-secs_bir <- unique(map_nat_bir$`SECTOR MIP BIREGIONAL`)
+MAPVEC <- set_names(map_ori_bir$scian_bir, map_ori_bir$scian_ori)
+which_MAPVEC <- function(iname) {
+  which(MAPVEC == MAPVEC[[iname]])
+}
 
-nat_dir <- 1:length(secs_nat)
-bir_dir <- 1:length(secs_bir)
+mapped <- map(names(map_vec), which_MAPVEC) |>
+  unique()
 
-nat_dir <- set_names(nat_dir, secs_nat)
-bir_dir <- set_names(bir_dir, secs_bir)
+mapped <- set_names(mapped, unique(map_ori_bir$scian_bir))
+M <- ALL[[1]]
 
-nat_dir[secs_nat]
-bir_dir[secs_nat]
+reduce_cols <- function(M, idxs) {
+  reduce(map(
+    idxs,
+    \(i) M[, i]
+  ), `+`)
+}
 
+reduce_rows <- function(M, idxs) {
+  reduce(map(
+    idxs,
+    \(i) M[i, ]
+  ), `+`)
+}
 
-x <- ALL[[1]]
-x78 <- x[1:78, 1:78]
+col_reduced <- map(mapped, \(idxs)
+reduce_cols(M, idxs)) %>%
+  do.call(cbind, .)
 
-nat_dir
+row_reduced <- map(mapped, \(idxs)
+reduce_rows(col_reduced, idxs)) %>%
+  do.call(rbind, .)

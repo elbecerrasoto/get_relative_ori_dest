@@ -1,4 +1,3 @@
-
 library(tidyverse)
 MIN_CLU <- 2
 
@@ -21,7 +20,7 @@ Sums <- ori_dest |>
 
 relative_buys <- function(col) {
   total <- sum(col)
-  if(total > 0) {
+  if (total > 0) {
     col / total
   } else {
     return(rep(0, length(col)))
@@ -43,8 +42,8 @@ myinst <- function(pack) {
 library(Rtsne)
 set.seed(424242)
 tsne <- Rtsne(CLU_ori_dest,
-              dims = 2, perplexity = 1, verbose = TRUE,
-              partial_pca = TRUE, num_threads = 12
+  dims = 2, perplexity = 1, verbose = TRUE,
+  partial_pca = TRUE, num_threads = 12
 )
 
 tsne_coords <- tsne$Y |>
@@ -62,7 +61,7 @@ KL <- JSD(CLU_ori_dest, unit = "log2") |> as.dist()
 
 HDB_wdl <- hdbscan(KL, minPts = MIN_CLU)
 
-tsne_coords$cluster <- factor(HDB_wdl$cluster) 
+tsne_coords$cluster <- factor(HDB_wdl$cluster)
 
 scian <- names(ori_dest) |>
   str_remove("_.*")
@@ -75,26 +74,31 @@ p <- ggplot(tsne_coords, aes(x = V1, y = V2, color = cluster)) +
   geom_text_repel(
     aes(
       label = scian
-    )) +
-  geom_point()+
+    )
+  ) +
+  geom_point() +
   theme_fivethirtyeight(base_size = 18)
 
 
-p_filtered <- ggplot(tsne_coords |> filter(cluster != 0)
-                     , aes(x = V1, y = V2, color = cluster)) +
+p_filtered <- ggplot(
+  tsne_coords |> filter(cluster != 0),
+  aes(x = V1, y = V2, color = cluster)
+) +
   geom_text_repel(
     aes(
       label = scian
-    )) +
-  geom_point()+
+    )
+  ) +
+  geom_point() +
   theme_fivethirtyeight(base_size = 18)
 
 
 ggsave("sectores_hermanados_inversion.png", p_filtered,
-       units = "cm", width = 24, height = 16)
- 
+  units = "cm", width = 24, height = 16
+)
 
-tsne_coords$sector <- names(ori_dest) 
+
+tsne_coords$sector <- names(ori_dest)
 tsne_coords <- tsne_coords |>
   arrange(cluster)
 
