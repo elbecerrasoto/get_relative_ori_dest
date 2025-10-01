@@ -41,3 +41,6 @@ collapse_matrix <- function(M, mapped) {
 }
 
 all_collapsed <- map(ALL, \(M) collapse_matrix(M, mapped))
+S_ALL <- reduce(all_collapsed, `+`)
+
+write_rds(S_ALL, "collapsed_and_summed.Rds")
