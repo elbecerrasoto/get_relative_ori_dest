@@ -8,30 +8,36 @@ which_MAPVEC <- function(iname) {
   which(MAPVEC == MAPVEC[[iname]])
 }
 
-mapped <- map(names(map_vec), which_MAPVEC) |>
+mapped <- map(names(MAPVEC), which_MAPVEC) |>
   unique()
 
 mapped <- set_names(mapped, unique(map_ori_bir$scian_bir))
-M <- ALL[[1]]
 
-reduce_cols <- function(M, idxs) {
-  reduce(map(
-    idxs,
-    \(i) M[, i]
-  ), `+`)
+
+collapse_matrix <- function(M, mapped) {
+  reduce_cols <- function(M, idxs) {
+    reduce(map(
+      idxs,
+      \(i) M[, i]
+    ), `+`)
+  }
+
+  reduce_rows <- function(M, idxs) {
+    reduce(map(
+      idxs,
+      \(i) M[i, ]
+    ), `+`)
+  }
+
+  col_reduced <- map(mapped, \(idxs)
+  reduce_cols(M, idxs)) %>%
+    do.call(cbind, .)
+
+  row_reduced <- map(mapped, \(idxs)
+  reduce_rows(col_reduced, idxs)) %>%
+    do.call(rbind, .)
+
+  row_reduced
 }
 
-reduce_rows <- function(M, idxs) {
-  reduce(map(
-    idxs,
-    \(i) M[i, ]
-  ), `+`)
-}
-
-col_reduced <- map(mapped, \(idxs)
-reduce_cols(M, idxs)) %>%
-  do.call(cbind, .)
-
-row_reduced <- map(mapped, \(idxs)
-reduce_rows(col_reduced, idxs)) %>%
-  do.call(rbind, .)
+all_collapsed <- map(ALL, \(M) collapse_matrix(M, mapped))
