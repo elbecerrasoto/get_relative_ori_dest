@@ -2,6 +2,7 @@ library(tidyverse)
 
 ALL <- read_rds("all_destinos.Rds")
 map_ori_bir <- read_tsv("ori_bir.tsv", col_types = "ffff")
+OUT <- "summed.Rds"
 
 MAPVEC <- set_names(map_ori_bir$scian_bir, map_ori_bir$scian_ori)
 which_MAPVEC <- function(iname) {
@@ -43,4 +44,4 @@ collapse_matrix <- function(M, mapped) {
 all_collapsed <- map(ALL, \(M) collapse_matrix(M, mapped))
 S_ALL <- reduce(all_collapsed, `+`)
 
-write_rds(S_ALL, "collapsed_and_summed.Rds")
+write_rds(S_ALL, OUT)

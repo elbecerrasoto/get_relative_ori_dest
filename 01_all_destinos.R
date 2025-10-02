@@ -12,6 +12,7 @@ if (.Platform$OS.type != "windows") {
 
 DIR <- "tabulados_TODFBCF/"
 NAMES <- "SubsectorConstantes.txt"
+OUT <- "all_destinos.Rds"
 
 INPUTS <- readLines(NAMES) %>%
   str_c(DIR, .)
@@ -36,4 +37,4 @@ read_origen_destino <- function(path) {
 }
 
 ALL <- future_map(INPUTS, read_origen_destino)
-write_rds(ALL, "all_destinos.Rds")
+write_rds(ALL, OUT)
