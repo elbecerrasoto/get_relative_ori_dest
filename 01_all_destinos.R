@@ -3,6 +3,9 @@ library(readxl)
 library(janitor)
 library(furrr)
 
+# grep 'Por subsector de actividad' tabulados_TODFBCF/indice_archivos.txt  | grep 'Valores constantes base 2018 en millones de pesos' | grep 'Importado' |  perl -pe 's/^(.*\.xlsx)\|.*/\1/'
+
+
 CORES <- future::availableCores()
 if (.Platform$OS.type != "windows") {
   plan(multicore, workers = CORES)
@@ -11,7 +14,7 @@ if (.Platform$OS.type != "windows") {
 }
 
 DIR <- "tabulados_TODFBCF/"
-NAMES <- "data/subsector_nacional.txt"
+NAMES <- "data/subsector_total.txt"
 OUT <- "results/01_all_destinos.Rds"
 
 INPUTS <- readLines(NAMES) %>%
