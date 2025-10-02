@@ -3,12 +3,11 @@ library(readxl)
 library(janitor)
 library(furrr)
 
-# ARGV <- commandArgs(trailingOnly = TRUE)
-# TYPE <- ARGV[[1]]
-# INPUT <- ARGV[[2]]
-TYPE <- "nacional"
-INPUT <- "data/subsector_nacional.txt"
-OUTPUT <- "results/nacional.tsv"
+ARGV <- commandArgs(trailingOnly = TRUE)
+
+TYPE <- ARGV[[1]]
+INPUT <- ARGV[[2]]
+OUTPUT <- ARGV[[3]]
 
 DIR <- "tabulados_TODFBCF/"
 MAP_FILE <- "data/ori_bir.tsv"
