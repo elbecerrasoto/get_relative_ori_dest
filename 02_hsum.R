@@ -1,8 +1,8 @@
 library(tidyverse)
 
-ALL <- read_rds("all_destinos.Rds")
-map_ori_bir <- read_tsv("ori_bir.tsv", col_types = "ffff")
-OUT <- "summed.Rds"
+ALL <- read_rds("results/01_all_destinos.Rds")
+map_ori_bir <- read_tsv("data/ori_bir.tsv", col_types = "ffff")
+OUT <- "results/02_summed.Rds"
 
 MAPVEC <- set_names(map_ori_bir$scian_bir, map_ori_bir$scian_ori)
 which_MAPVEC <- function(iname) {

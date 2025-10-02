@@ -11,8 +11,8 @@ if (.Platform$OS.type != "windows") {
 }
 
 DIR <- "tabulados_TODFBCF/"
-NAMES <- "SubsectorConstantes.txt"
-OUT <- "all_destinos.Rds"
+NAMES <- "data/subsector_nacional.txt"
+OUT <- "results/01_all_destinos.Rds"
 
 INPUTS <- readLines(NAMES) %>%
   str_c(DIR, .)
