@@ -1,3 +1,3 @@
 total data/subsector_total.txt results/total.tsv
 nacional data/subsector_nacional.txt results/nacional.tsv
-importado data/subsector_total.txt results/importado.tsv
+importado data/subsector_importado.txt results/importado.tsv
