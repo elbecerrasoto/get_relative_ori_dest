@@ -3,11 +3,15 @@ library(readxl)
 library(janitor)
 library(furrr)
 
-ARGV <- commandArgs(trailingOnly = TRUE)
+# ARGV <- commandArgs(trailingOnly = TRUE)
+# 
+# TYPE <- ARGV[[1]]
+# INPUT <- ARGV[[2]]
+# OUTPUT <- ARGV[[3]]
 
-TYPE <- ARGV[[1]]
-INPUT <- ARGV[[2]]
-OUTPUT <- ARGV[[3]]
+TYPE <- "total"
+INPUT <- "data/subsector_total.txt"
+OUTPUT <- "results/year_avg.tsv"
 
 DIR <- "tabulados_TODFBCF/"
 MAP_FILE <- "data/ori_bir.tsv"
@@ -88,39 +92,52 @@ collapse_matrix <- function(M, mapped) {
 }
 
 all_collapsed <- map(ALL, \(M) collapse_matrix(M, mapped))
-ori_dest <- reduce(all_collapsed, `+`)
 
-# Get the relative frecuencies
+# average by year
 
-tmp <- read_tsv(SHORT_NAMES)
-sectors <- unique(tmp$sector)
-
-# length(ori_dest[ori_dest < 0]) / 80^2 * 100 # less than 1% is negative
-
-ori_dest[ori_dest < 0] <- 0
-
-Sums <- ori_dest |>
-  colSums()
-
-relative_buys <- function(col) {
-  total <- sum(col)
-  if (total > 0) {
-    col / total
-  } else {
-    return(rep(0, length(col)))
+avg_year <- function(ori_dest) {
+  
+  ori_dest[ori_dest < 0] <- 0
+  
+  Sums <- ori_dest |>
+    colSums()
+  
+  relative_buys <- function(col) {
+    total <- sum(col)
+    if (total > 0) {
+      col / total
+    } else {
+      return(rep(0, length(col)))
+    }
   }
+  
+  rel_ori_dest <- apply(ori_dest, 2, relative_buys)
 }
 
-rel_ori_dest <- apply(ori_dest, 2, relative_buys)
-colnames(rel_ori_dest) <- sectors
 
-Trel_ori_dest <- rel_ori_dest |> as_tibble()
-Trel_ori_dest <- Trel_ori_dest |>
+all_avg_year <- all_collapsed |>
+  map(avg_year)
+
+N <- length(all_avg_year)
+
+ori_dest <- reduce(all_avg_year, `+`)
+ori_dest <- apply(ori_dest, 2, \(icol) icol/N)
+
+
+sectors <- read_tsv(SHORT_NAMES) |>
+  filter(region == "sinaloa") |>
+  pull(sector)
+
+colnames(ori_dest) <- sectors
+
+Tori_dest <- ori_dest |> as_tibble()
+Tori_dest <- Tori_dest |>
   mutate(sector = sectors) |>
   relocate(sector)
 
-Trel_ori_dest$type <- TYPE
+Tori_dest$type <- TYPE
 
-Trel_ori_dest |>
-  relocate(type, .after = sector) |>
+Tori_dest  <- Tori_dest |>
+  relocate(type, .after = sector)
+Tori_dest |>
   write_tsv(OUTPUT)
