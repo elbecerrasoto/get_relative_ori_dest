@@ -141,3 +141,25 @@ Tori_dest  <- Tori_dest |>
   relocate(type, .after = sector)
 Tori_dest |>
   write_tsv(OUTPUT)
+
+tQ <- Tori_dest |>
+  select(sector, type, industria_quimica_plasticos) |>
+  arrange(desc(industria_quimica_plasticos))
+tQ |>
+  write_tsv("results/tQ_year.tsv")
+
+relative_buys <- function(col) {
+  total <- sum(col)
+  if (total > 0) {
+    col / total
+  } else {
+    return(rep(0, length(col)))
+  }
+}
+
+tQ[3:nrow(tQ),] |>
+  mutate(Qtail =
+           relative_buys(
+             industria_quimica_plasticos)) |>
+  select(sector, Qtail)
+  
